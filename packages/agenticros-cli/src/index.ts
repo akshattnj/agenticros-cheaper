@@ -28,6 +28,7 @@ import { robotsCommand } from "./commands/robots.js";
 import { claudeDoctorCommand, claudeSetupCommand } from "./commands/claude.js";
 import { codexDoctorCommand, codexSetupCommand } from "./commands/codex.js";
 import { hermesDoctorCommand, hermesSetupCommand } from "./commands/hermes.js";
+import { agyDoctorCommand, agyRunCommand, agySetupCommand } from "./commands/agy.js";
 import { mcpDoctorCliCommand, mcpSetupCliCommand } from "./commands/mcp.js";
 import { runMenu } from "./menu.js";
 import {
@@ -684,6 +685,38 @@ hermesCmd
     const exitCode = await hermesDoctorCommand(opts);
     if (exitCode !== 0) process.exit(exitCode);
   });
+
+const agyCmd = program
+  .command("agy")
+  .description("Configure Google Antigravity (AGY) to use AgenticROS via Gemini subscriptions (zero API key needed).");
+
+agyCmd
+  .command("setup")
+  .description("Register agenticros MCP in workspace `.mcp.json` and install AGY Skill into ~/.gemini/antigravity-cli/skills/agenticros/SKILL.md.")
+  .action(async () => {
+    await agySetupCommand();
+  });
+
+agyCmd
+  .command("doctor")
+  .description("Validate AGY MCP config and Skill installation.")
+  .option("--json", "Emit JSON instead of a table", false)
+  .action(async (opts: { json?: boolean }) => {
+    const exitCode = await agyDoctorCommand(opts);
+    if (exitCode !== 0) process.exit(exitCode);
+  });
+
+agyCmd
+  .command("run <prompt...>")
+  .description("Run a prompt non-interactively via AGY from standard terminal using default account & Gemini subscription.")
+  .option("--model <model>", "Model ID for AGY session")
+  .action(async (promptParts: string[], opts: { model?: string }) => {
+    const prompt = promptParts.join(" ").trim();
+    await agyRunCommand(prompt, { model: opts.model });
+  });
+
+
+
 
 program
   .command("hive [action]")

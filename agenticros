@@ -1,27 +1,55 @@
 #!/usr/bin/env bash
-# Repository-root convenience launcher for the AgenticROS CLI.
+# Repository-root convenience launcher for the AgenticROS CLI & AGY Wrapper.
 #
 # Demo-friendly: `./agenticros` from this repo runs the workspace build of
 # packages/agenticros-cli without requiring a global install. If the CLI hasn't
 # been built yet, we build it on the first invocation so a fresh clone "just
 # works".
 #
-# Published npm users should run `npx agenticros` instead — this shim is for
-# contributors working out of the monorepo.
+# When invoked as `agenticros agy run ...` or when node is unavailable,
+# it delegates directly to Google Antigravity (AGY).
 
 set -e
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLI_DIR="$ROOT/packages/agenticros-cli"
 DIST_ENTRY="$CLI_DIR/dist/index.js"
+AGY_BIN="${HOME}/.local/bin/agy"
 
-if [ ! -f "$DIST_ENTRY" ]; then
-  if [ ! -d "$ROOT/node_modules" ]; then
-    echo "[agenticros] First-time setup: installing JS workspace deps…" >&2
-    (cd "$ROOT" && pnpm install)
+# If first arg is "agy" or "agy run", pass directly to agy executable
+if [ "$1" = "agy" ]; then
+  shift
+  if [ "$1" = "run" ]; then
+    shift
   fi
-  echo "[agenticros] Building the CLI (one-time)…" >&2
-  (cd "$ROOT" && pnpm --filter agenticros build)
+  if [ -x "$AGY_BIN" ]; then
+    exec "$AGY_BIN" -p "$*" --dangerously-skip-permissions
+  elif command -v agy >/dev/null 2>&1; then
+    exec agy -p "$*" --dangerously-skip-permissions
+  fi
 fi
 
-exec node "$DIST_ENTRY" "$@"
+if command -v node >/dev/null 2>&1; then
+  if [ ! -f "$DIST_ENTRY" ] && command -v pnpm >/dev/null 2>&1; then
+    if [ ! -d "$ROOT/node_modules" ]; then
+      echo "[agenticros] First-time setup: installing JS workspace deps…" >&2
+      (cd "$ROOT" && pnpm install)
+    fi
+    echo "[agenticros] Building the CLI (one-time)…" >&2
+    (cd "$ROOT" && pnpm --filter agenticros build)
+  fi
+
+  if [ -f "$DIST_ENTRY" ]; then
+    exec node "$DIST_ENTRY" "$@"
+  fi
+fi
+
+# Fallback to agy directly if node/dist is not in path
+if [ -x "$AGY_BIN" ]; then
+  exec "$AGY_BIN" -p "$*" --dangerously-skip-permissions
+elif command -v agy >/dev/null 2>&1; then
+  exec agy -p "$*" --dangerously-skip-permissions
+else
+  echo "[agenticros] Error: Neither node/dist nor agy binary found in PATH." >&2
+  exit 1
+fi
