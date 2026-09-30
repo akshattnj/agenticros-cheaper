@@ -3,7 +3,7 @@
 > agentic AI for ROS-powered robots
 
 `agenticros` is the unified command-line tool for AgenticROS — bring up a real
-robot or a simulated one, drive it from Claude Code, OpenAI Codex, Hermes Agent, or OpenClaw
+robot or a simulated one, drive it from Claude Code, OpenAI Codex, Hermes Agent, Google Antigravity (AGY), or OpenClaw
 (with **local Ollama VLMs** or cloud models),
 connect to [AgenticROS Cloud](https://cloud.agenticros.com), and keep your workspace
 healthy from a single binary.
@@ -229,6 +229,9 @@ agenticros start camera -d /dev/video4
 | `agenticros logs [target]` | Tail logs. |
 | `agenticros config` / `mode` | Edit `~/.agenticros/config.json`. |
 | `agenticros mcp setup` | Codex + Hermes + Claude MCP. |
+| `agenticros agy setup` | Register MCP and deploy Skill for Google Antigravity (tokenless). |
+| `agenticros agy doctor` | Validate AGY MCP config and Skill installation. |
+| `agenticros agy run <prompt>` | Run prompt non-interactively via AGY from standard shell. |
 | `agenticros web` | Open cloud config/teleop dashboard URL. |
 | `agenticros skills …` | Skill marketplace / local skills. Robot skills only — see [docs/skills.md](https://github.com/agenticros/agenticros/blob/main/docs/skills.md). |
 | `agenticros skills install --bundle mapping` | Install `@agenticros/start-slam`, `explore`, and `navigate-to`. |
